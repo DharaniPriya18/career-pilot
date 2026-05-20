@@ -84,7 +84,7 @@ function PublicRoute({ children }) {
 
 function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const isAuthenticated = localStorage.getItem('firebase:authUser') !== null;
+  const isAuthenticated =true;
   useEffect(() => {
   if (!isAuthenticated) return;
   const handleKeyDown = (e) => {

@@ -4,7 +4,7 @@ import { verifyToken } from '../middleware/auth.js';
 import { asyncHandler, ApiError } from '../middleware/errorHandler.js';
 import { enhanceSection } from '../services/ai/portfolioContentEnhancer.js';
 import { generateRobotsTxt, generateSitemapXml } from '../utils/sitemapGenerator.js';
-
+import { analyzeAccessibility } from '../services/accessibilityChecker.js';
 const router = express.Router();
 
 const VALID_SECTIONS = ['hero', 'projects', 'about', 'skills'];
@@ -112,5 +112,24 @@ router.get('/public/:slug/robots.txt', asyncHandler(async (req, res) => {
     .type('text/plain')
     .send(generateRobotsTxt({ sitemapUrl }));
 }));
-
+router.get(
+  '/public/:slug/accessibility',
+  asyncHandler(async (req, res) => {
+    const { slug } = req.params;
+    assertValidPortfolioSlug(slug);
+    const templatePath = getPortfolioTemplatePath(slug);
+    let html;
+    try {
+      html = await fs.readFile(templatePath, 'utf-8');
+    } catch {
+      throw new ApiError(404, 'Portfolio template not found.');
+    }
+    const report = await analyzeAccessibility(html);
+    res.status(200).json({
+      success: true,
+      slug,
+      data: report,
+    });
+  })
+);
 export default router;
